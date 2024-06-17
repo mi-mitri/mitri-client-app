@@ -1,0 +1,13 @@
+.header {
+  flex: 0 0 auto;
+  padding: 10px;
+  background-color: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  width: calc(100% - 20px); /* Учитываем отступы */
+  left: 10px; /* Смещаем вправо на отступ */
+  box-sizing: border-box;
+  margin: 0 auto; /* Центруем хедер */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

@@ -1,0 +1,36 @@
+.upgrades {
+  position: relative;
+  height: calc(100vh - 60px - 60px); /* Учитываем высоту Navbar и Header */
+  width: 100%; /* Ограничиваем ширину до ширины экрана */
+  padding: 0 10px; /* Добавляем отступы по бокам */
+  box-sizing: border-box;
+
+  .tabs {
+    display: flex;
+    margin-bottom: 20px;
+    justify-content: space-between;
+
+    .tab {
+      flex: 1;
+      padding: 10px;
+      cursor: pointer;
+      text-align: center;
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 4px 4px 0 0;
+      transition: background-color 0.3s;
+
+      &.active {
+        background-color: #fff;
+        border-bottom: none;
+      }
+    }
+  }
+
+  .upgrade-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    justify-content: center;
+  }
+}

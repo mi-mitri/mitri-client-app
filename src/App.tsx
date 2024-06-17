@@ -1,26 +1,39 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from 'react';
+import Navbar from './components/Navbar';
+import Header from './components/Header';
+import Workspace from './components/Workspace';
+import Upgrades from './components/Upgrades';
+import Friends from './components/Friends';
+import Wallet from './components/Wallet';
+import './components/styles/App.scss';
 
-function App() {
+const App: React.FC = () => {
+  const [page, setPage] = useState<string>('workspace');
+
+  const renderPage = () => {
+    switch (page) {
+      case 'workspace':
+        return <Workspace />;
+      case 'upgrades':
+        return <Upgrades />;
+      case 'friends':
+        return <Friends />;
+      case 'wallet':
+        return <Wallet />;
+      default:
+        return <Workspace />;
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="app">
+      <Header />
+      <div className="content">
+        {renderPage()}
+      </div>
+      <Navbar setPage={setPage} />
     </div>
   );
-}
+};
 
 export default App;

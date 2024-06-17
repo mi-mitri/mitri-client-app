@@ -1,0 +1,20 @@
+.friends {
+  position: relative;
+  height: calc(100vh - 60px - 60px); /* Учитываем высоту Navbar и Header */
+  width: 100%; /* Ограничиваем ширину до ширины экрана */
+  padding: 0 10px; /* Добавляем отступы по бокам */
+  box-sizing: border-box;
+
+  .friend-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .friend-item {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: #fff;
+  }
+}
