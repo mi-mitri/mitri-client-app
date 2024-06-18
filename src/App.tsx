@@ -6,7 +6,7 @@ import Upgrades from './components/Upgrades';
 import Friends from './components/Friends';
 import Wallet from './components/Wallet';
 import { AppProvider } from './context/AppContext';
-import './styles/App.scss';
+import './components/styles/App.scss';
 
 const App: React.FC = () => {
   const [page, setPage] = useState('workspace');
