@@ -6,13 +6,13 @@ const Header: React.FC = () => {
   const { coins, coinRate } = useAppContext();
 
   return (
-    <div className="header">
-      <span>Пользователь:</span>
-      <span>Coins: <strong>{Math.floor(coins)}</strong></span>
-      <span>Coins per hour: <strong>{Math.floor(coinRate)}</strong></span>
-    </div>
+    <header className="header">
+      <div className="coin-info">
+        <span>Coins: {Math.floor(coins)}</span>
+        <span>Coins per hour: {coinRate}</span>
+      </div>
+    </header>
   );
 };
 
 export default Header;
-
