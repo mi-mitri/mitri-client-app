@@ -15,7 +15,8 @@ const App: React.FC = () => {
   const [lastName, setLastName] = useState('');
 
   useEffect(() => {
-    const telegram = (window as any).Telegram.WebApp;
+    // @ts-ignore
+    const telegram = window.Telegram.WebApp;
     if (telegram && telegram.initDataUnsafe) {
       const { username, first_name, last_name } = telegram.initDataUnsafe.user || {};
       setUsername(username || '');
@@ -39,7 +40,6 @@ const App: React.FC = () => {
 };
 
 export default App;
-
 
 
 // import React, { useState } from 'react';
