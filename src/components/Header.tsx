@@ -5,11 +5,11 @@ const Header: React.FC = () => {
   const { user, coins, coinRate } = useAppContext();
 
   return (
-    <div className="header">
-      {user && <p>Welcome, {user.first_name} {user.last_name}</p>}
-      <p>Coins: {coins}</p>
-      <p>Coins per hour: {coinRate}</p>
-    </div>
+    <header>
+      {user && <div>Welcome, {user.username}!</div>}
+      <div>Coins: {coins}</div>
+      <div>Coin Rate: {coinRate} per hour</div>
+    </header>
   );
 };
 

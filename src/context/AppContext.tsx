@@ -51,6 +51,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     axios.post('http://83.166.232.161:3001/get-user-data', { userId: initData.user.id })
       .then(response => {
         const userData = response.data;
+        console.log('User data fetched:', userData); // Добавлен лог для отладки
         setUser(userData);
         setCoins(userData.coins);
         setCoinRate(userData.coin_rate);
@@ -59,7 +60,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setUpgrades(userData.upgrades || upgrades);
       })
       .catch(error => console.error('Error fetching user data:', error));
-  }, [upgrades]);
+  }, []);
 
   useEffect(() => {
     const coinInterval = setInterval(() => {
@@ -110,6 +111,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   const saveProgress = useCallback(() => {
     if (user) {
+      console.log('Saving progress:', { userId: user.id, coins, coinRate, energy, maxEnergy, upgrades }); // Добавлен лог для отладки
       axios.post('http://83.166.232.161:3001/save-progress', {
         userId: user.id,
         coins,
@@ -129,7 +131,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       saveProgress();
       window.removeEventListener('beforeunload', saveProgress);
     };
-  }, [coins, coinRate, energy, maxEnergy, upgrades, saveProgress]);
+  }, [saveProgress]);
 
   return (
     <AppContext.Provider value={{ user, coins, coinRate, energy, maxEnergy, upgrades, addCoins, decreaseEnergy, setCoinRate, increaseMaxEnergy, purchaseUpgrade, saveProgress }}>
@@ -145,7 +147,6 @@ export const useAppContext = () => {
   }
   return context;
 };
-
 
 
 
