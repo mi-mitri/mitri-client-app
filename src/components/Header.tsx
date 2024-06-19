@@ -1,26 +1,14 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import './styles/components/Header.scss';
 
-interface HeaderProps {
-  username: string;
-  firstName: string;
-  lastName: string;
-}
-
-const Header: React.FC<HeaderProps> = ({ username, firstName, lastName }) => {
-  const { coins, coinRate } = useAppContext();
+const Header: React.FC = () => {
+  const { user, coins, coinRate } = useAppContext();
 
   return (
     <div className="header">
-      <div className="user-info">
-        <span className="username">{username}</span>
-        <span className="full-name">{firstName} {lastName}</span>
-      </div>
-      <div className="coin-info">
-        <span className="coin-count">{coins} Coins</span>
-        <span className="coin-rate">{coinRate} Coins/hr</span>
-      </div>
+      {user && <p>Welcome, {user.first_name} {user.last_name}</p>}
+      <p>Coins: {coins}</p>
+      <p>Coins per hour: {coinRate}</p>
     </div>
   );
 };

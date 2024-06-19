@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import axios from 'axios';
 
 interface Upgrade {
   id: number;
@@ -11,6 +12,7 @@ interface Upgrade {
 }
 
 interface AppContextProps {
+  user: any;
   coins: number;
   coinRate: number;
   energy: number;
@@ -22,12 +24,12 @@ interface AppContextProps {
   increaseMaxEnergy: (amount: number) => void;
   purchaseUpgrade: (upgrade: Upgrade) => void;
   saveProgress: () => void;
-  loadProgress: (userId: string) => void;
 }
 
 const AppContext = createContext<AppContextProps | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<any>(null);
   const [coins, setCoins] = useState<number>(0);
   const [coinRate, setCoinRate] = useState<number>(3600); // Example rate
   const [energy, setEnergy] = useState<number>(1000);
@@ -43,6 +45,21 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       additionalCoinRate: 100 * 0.22 // 22 coins per hour
     }
   ]);
+
+  useEffect(() => {
+    const initData = window.Telegram.WebApp.initDataUnsafe;
+    axios.post('http://83.166.232.161:3001/get-user-data', { userId: initData.user.id })
+      .then(response => {
+        const userData = response.data;
+        setUser(userData);
+        setCoins(userData.coins);
+        setCoinRate(userData.coin_rate);
+        setEnergy(userData.energy);
+        setMaxEnergy(userData.max_energy);
+        setUpgrades(userData.upgrades || upgrades);
+      })
+      .catch(error => console.error('Error fetching user data:', error));
+  }, []);
 
   useEffect(() => {
     const coinInterval = setInterval(() => {
@@ -91,51 +108,31 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  const saveProgress = async () => {
-    const userId = 'user-id-placeholder'; // Replace with actual user ID
-    const response = await fetch('/save-progress', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        userId,
+  const saveProgress = () => {
+    if (user) {
+      axios.post('http://83.166.232.161:3001/save-progress', {
+        userId: user.id,
         coins,
         coinRate,
         energy,
         maxEnergy,
-        upgrades,
-      }),
-    });
-
-    if (!response.ok) {
-      console.error('Failed to save progress');
+        upgrades
+      })
+        .then(() => console.log('Progress saved successfully'))
+        .catch(error => console.error('Error saving progress:', error));
     }
   };
 
-  const loadProgress = async (userId: string) => {
-    const response = await fetch('/get-user-data', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ userId }),
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      setCoins(data.coins);
-      setCoinRate(data.coin_rate);
-      setEnergy(data.energy);
-      setMaxEnergy(data.max_energy);
-      setUpgrades(JSON.parse(data.upgrades));
-    } else {
-      console.error('Failed to load progress');
-    }
-  };
+  useEffect(() => {
+    window.addEventListener('beforeunload', saveProgress);
+    return () => {
+      saveProgress();
+      window.removeEventListener('beforeunload', saveProgress);
+    };
+  }, [coins, coinRate, energy, maxEnergy, upgrades]);
 
   return (
-    <AppContext.Provider value={{ coins, coinRate, energy, maxEnergy, upgrades, addCoins, decreaseEnergy, setCoinRate, increaseMaxEnergy, purchaseUpgrade, saveProgress, loadProgress }}>
+    <AppContext.Provider value={{ user, coins, coinRate, energy, maxEnergy, upgrades, addCoins, decreaseEnergy, setCoinRate, increaseMaxEnergy, purchaseUpgrade, saveProgress }}>
       {children}
     </AppContext.Provider>
   );
