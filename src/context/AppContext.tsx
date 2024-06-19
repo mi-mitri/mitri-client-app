@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import axios from 'axios';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 
 interface Upgrade {
   id: number;
@@ -46,21 +45,64 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   ]);
 
+  const saveProgress = useCallback(() => {
+    if (user) {
+      const ws = new WebSocket('ws://83.166.232.161:3001');
+      
+      ws.onopen = () => {
+        ws.send(JSON.stringify({
+          type: 'save-progress',
+          payload: {
+            userId: user.telegram_id,
+            coins,
+            coinRate,
+            energy,
+            maxEnergy,
+          }
+        }));
+      };
+
+      ws.onmessage = (event) => {
+        const message = JSON.parse(event.data);
+        if (message.type === 'success') {
+          console.log('Progress saved successfully');
+        } else if (message.type === 'error') {
+          console.error('Error saving progress:', message.payload);
+        }
+        ws.close();
+      };
+    }
+  }, [user, coins, coinRate, energy, maxEnergy]);
+
   useEffect(() => {
-    const initData = window.Telegram.WebApp.initDataUnsafe;
-    axios.post('http://83.166.232.161:3001/get-user-data', { userId: initData.user.id })
-      .then(response => {
-        const userData = response.data;
-        console.log('User data fetched:', userData); // Добавлен лог для отладки
+    const ws = new WebSocket('ws://83.166.232.161:3001');
+    
+    ws.onopen = () => {
+      console.log('Connected to server');
+      const initData = window.Telegram.WebApp.initDataUnsafe;
+      ws.send(JSON.stringify({ type: 'get-user-data', payload: { userId: initData.user.id } }));
+    };
+
+    ws.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      if (message.type === 'user-data') {
+        const userData = message.payload;
         setUser(userData);
         setCoins(userData.coins);
         setCoinRate(userData.coin_rate);
         setEnergy(userData.energy);
         setMaxEnergy(userData.max_energy);
         setUpgrades(userData.upgrades || upgrades);
-      })
-      .catch(error => console.error('Error fetching user data:', error));
-  }, []);
+      }
+    };
+
+    window.addEventListener('beforeunload', saveProgress);
+    return () => {
+      saveProgress();
+      ws.close();
+      window.removeEventListener('beforeunload', saveProgress);
+    };
+  }, [saveProgress, upgrades]);
 
   useEffect(() => {
     const coinInterval = setInterval(() => {
@@ -109,30 +151,6 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  const saveProgress = useCallback(() => {
-    if (user) {
-      console.log('Saving progress:', { userId: user.id, coins, coinRate, energy, maxEnergy, upgrades }); // Добавлен лог для отладки
-      axios.post('http://83.166.232.161:3001/save-progress', {
-        userId: user.id,
-        coins,
-        coinRate,
-        energy,
-        maxEnergy,
-        upgrades
-      })
-        .then(() => console.log('Progress saved successfully'))
-        .catch(error => console.error('Error saving progress:', error));
-    }
-  }, [user, coins, coinRate, energy, maxEnergy, upgrades]);
-
-  useEffect(() => {
-    window.addEventListener('beforeunload', saveProgress);
-    return () => {
-      saveProgress();
-      window.removeEventListener('beforeunload', saveProgress);
-    };
-  }, [saveProgress]);
-
   return (
     <AppContext.Provider value={{ user, coins, coinRate, energy, maxEnergy, upgrades, addCoins, decreaseEnergy, setCoinRate, increaseMaxEnergy, purchaseUpgrade, saveProgress }}>
       {children}
@@ -147,7 +165,6 @@ export const useAppContext = () => {
   }
   return context;
 };
-
 
 
 // import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
