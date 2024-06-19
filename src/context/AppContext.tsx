@@ -1,5 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import axios from 'axios';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface Upgrade {
   id: number;
@@ -12,10 +11,6 @@ interface Upgrade {
 }
 
 interface AppContextProps {
-  user: {
-    id: number;
-    username: string;
-  };
   coins: number;
   coinRate: number;
   energy: number;
@@ -27,33 +22,27 @@ interface AppContextProps {
   increaseMaxEnergy: (amount: number) => void;
   purchaseUpgrade: (upgrade: Upgrade) => void;
   saveProgress: () => void;
+  loadProgress: (userId: string) => void;
 }
 
 const AppContext = createContext<AppContextProps | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<{ id: number, username: string }>({ id: 0, username: '' });
   const [coins, setCoins] = useState<number>(0);
   const [coinRate, setCoinRate] = useState<number>(3600); // Example rate
   const [energy, setEnergy] = useState<number>(1000);
   const [maxEnergy, setMaxEnergy] = useState<number>(1000);
-  const [upgrades, setUpgrades] = useState<Upgrade[]>([]);
-
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const response = await axios.post('https://83.166.232.161/get-user-data', {
-        userId: window.Telegram.WebApp.initDataUnsafe.user.id,
-      });
-      setUser({ id: response.data.id, username: response.data.username });
-      setCoins(response.data.coins);
-      setCoinRate(response.data.coinRate);
-      setEnergy(response.data.energy);
-      setMaxEnergy(response.data.maxEnergy);
-      setUpgrades(response.data.upgrades);
-    };
-
-    fetchUserData();
-  }, []);
+  const [upgrades, setUpgrades] = useState<Upgrade[]>([
+    {
+      id: 1,
+      name: 'Upgrade Coin Rate',
+      image: 'https://via.placeholder.com/150',
+      baseCost: 100,
+      level: 0,
+      type: 'new',
+      additionalCoinRate: 100 * 0.22 // 22 coins per hour
+    }
+  ]);
 
   useEffect(() => {
     const coinInterval = setInterval(() => {
@@ -102,27 +91,51 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  const saveProgress = useCallback(async () => {
-    await axios.post('https://83.166.232.161/save-progress', {
-      userId: user.id,
-      coins,
-      coinRate,
-      energy,
-      maxEnergy,
-      upgrades
+  const saveProgress = async () => {
+    const userId = 'user-id-placeholder'; // Replace with actual user ID
+    const response = await fetch('/save-progress', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        userId,
+        coins,
+        coinRate,
+        energy,
+        maxEnergy,
+        upgrades,
+      }),
     });
-  }, [user.id, coins, coinRate, energy, maxEnergy, upgrades]);
 
-  useEffect(() => {
-    const saveInterval = setInterval(() => {
-      saveProgress();
-    }, 60000); // Save progress every 60 seconds
+    if (!response.ok) {
+      console.error('Failed to save progress');
+    }
+  };
 
-    return () => clearInterval(saveInterval);
-  }, [saveProgress]);
+  const loadProgress = async (userId: string) => {
+    const response = await fetch('/get-user-data', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId }),
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      setCoins(data.coins);
+      setCoinRate(data.coin_rate);
+      setEnergy(data.energy);
+      setMaxEnergy(data.max_energy);
+      setUpgrades(JSON.parse(data.upgrades));
+    } else {
+      console.error('Failed to load progress');
+    }
+  };
 
   return (
-    <AppContext.Provider value={{ user, coins, coinRate, energy, maxEnergy, upgrades, addCoins, decreaseEnergy, setCoinRate, increaseMaxEnergy, purchaseUpgrade, saveProgress }}>
+    <AppContext.Provider value={{ coins, coinRate, energy, maxEnergy, upgrades, addCoins, decreaseEnergy, setCoinRate, increaseMaxEnergy, purchaseUpgrade, saveProgress, loadProgress }}>
       {children}
     </AppContext.Provider>
   );
@@ -135,6 +148,7 @@ export const useAppContext = () => {
   }
   return context;
 };
+
 
 
 // import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
