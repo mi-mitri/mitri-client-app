@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import axios from 'axios';
 
 interface Upgrade {
@@ -102,7 +102,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  const saveProgress = async () => {
+  const saveProgress = useCallback(async () => {
     await axios.post('https://83.166.232.161/save-progress', {
       userId: user.id,
       coins,
@@ -111,7 +111,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       maxEnergy,
       upgrades
     });
-  };
+  }, [user.id, coins, coinRate, energy, maxEnergy, upgrades]);
 
   useEffect(() => {
     const saveInterval = setInterval(() => {
@@ -119,7 +119,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }, 60000); // Save progress every 60 seconds
 
     return () => clearInterval(saveInterval);
-  }, [coins, coinRate, energy, maxEnergy, upgrades]);
+  }, [saveProgress]);
 
   return (
     <AppContext.Provider value={{ user, coins, coinRate, energy, maxEnergy, upgrades, addCoins, decreaseEnergy, setCoinRate, increaseMaxEnergy, purchaseUpgrade, saveProgress }}>
@@ -135,6 +135,7 @@ export const useAppContext = () => {
   }
   return context;
 };
+
 
 // import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
