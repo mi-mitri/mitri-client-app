@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import axios from 'axios';
 
 interface Upgrade {
@@ -59,7 +59,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         setUpgrades(userData.upgrades || upgrades);
       })
       .catch(error => console.error('Error fetching user data:', error));
-  }, []);
+  }, [upgrades]);
 
   useEffect(() => {
     const coinInterval = setInterval(() => {
@@ -108,7 +108,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
-  const saveProgress = () => {
+  const saveProgress = useCallback(() => {
     if (user) {
       axios.post('http://83.166.232.161:3001/save-progress', {
         userId: user.id,
@@ -121,7 +121,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         .then(() => console.log('Progress saved successfully'))
         .catch(error => console.error('Error saving progress:', error));
     }
-  };
+  }, [user, coins, coinRate, energy, maxEnergy, upgrades]);
 
   useEffect(() => {
     window.addEventListener('beforeunload', saveProgress);
@@ -145,6 +145,7 @@ export const useAppContext = () => {
   }
   return context;
 };
+
 
 
 
